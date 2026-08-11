@@ -22,7 +22,10 @@ void iniciaArray(struct Projeto *projetos);
 void cadastrarProjeto(struct Projeto *projetos);
 void cadastrarNotas(struct Projeto *projetos);
 void verProjetos(struct Projeto *projetos);
-double mediaGeral(struct Projeto *projetos, int numProjetos);
+double mediaGeral(struct Projeto *projetos);
+void maiorEmenorMedia(struct Projeto *projetos);
+void contarProjetosAcimaMedia(struct Projeto *projetos);
+void exibirNotasCrescente(struct Projeto *projetos);
 void menorQueSeteEmUma(struct Projeto *projetos);
 void mostraClassificados(struct Projeto *projetos);
 void sair();
@@ -34,14 +37,14 @@ int main()
     char t;
 
     setColor(15);
-
     iniciaArray(projetos);
     desenhaMenu(op);
+
     do
     {
         t = getch();
 
-        if (t <= 0)
+        if (t <= 0 || t == -32)
         {
             t = getch();
             if (t == 80)
@@ -62,45 +65,47 @@ int main()
             }
         }
         else if (t == 13)
+        {
+            system("cls");
             switch (op)
             {
             case 1:
-                // Cadastrar o código e o percentual de cumprimento das etapas dos projetos
                 cadastrarProjeto(projetos);
                 break;
             case 2:
-                // Cadastrar as notas dos projetos, indicando se a nota corresponde à primeira ou à segunda avaliação
                 cadastrarNotas(projetos);
                 break;
             case 3:
-                // Exibir todos os projetos, com código, notas e percentual de cumprimento
                 verProjetos(projetos);
                 break;
             case 4:
-                // Calcular e exibir a média geral dos projetos
-                mediaGeral(projetos, 30);
+                mediaGeral(projetos);
                 break;
             case 5:
-                // Exibir a maior e a menor nota final
                 maiorEmenorMedia(projetos);
                 break;
             case 6:
-                // Contar quantos projetos ficaram acima da média geral
+                contarProjetosAcimaMedia(projetos);
                 break;
             case 7:
-                // Exibir as notas finais em ordem crescente, acompanhadas dos respectivos códigos
+                exibirNotasCrescente(projetos);
                 break;
             case 8:
-                // Mostrar os códigos dos projetos que receberam nota menor que 7,0 em pelo menos uma avaliação
+                menorQueSeteEmUma(projetos);
                 break;
             case 9:
-                // Mostrar os projetos classificados para a exposição final, exibindo código, nota final e percentual de cumprimento
+                mostraClassificados(projetos);
                 break;
             case 10:
                 sair();
-                break;
+                return 0;
             }
+            printf("\nPressione qualquer tecla para voltar ao menu...");
+            getch();
+            desenhaMenu(op);
+        }
     } while (t != 27);
+    return 0;
 }
 
 void gotoxy(int x, int y)
@@ -111,8 +116,7 @@ void gotoxy(int x, int y)
 
 int setColor(char color)
 {
-    HANDLE h;
-    h = GetStdHandle(STD_OUTPUT_HANDLE);
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
     return SetConsoleTextAttribute(h, color);
 }
 
@@ -129,212 +133,324 @@ void iniciaArray(struct Projeto *projetos)
     for (i = 0; i < 30; i++)
     {
         projetos[i].existe = 0;
+        projetos[i].codigo = 0;
+        projetos[i].percentual = 0;
+        projetos[i].nota1 = 0;
+        projetos[i].nota2 = 0;
+        projetos[i].media = 0;
     }
 }
 
 void desenhaMenu(int op)
 {
-    char vet[][20] = {"Cadastrar novo projeto", "Cadastrar notas", "Ver projetos", "Ver media geral dos projetos", "Ver maior e menor nota final", "Ver numero de projetos acima da media", "Exibir medias em ordem crescente", "Ver projetos com pelo menos uma nota maior que 7", "Mostrar projetos classificados", "Sair"};
-    int i;
+    char vet[10][60] = {
+        "1. Cadastrar novo projeto",
+        "2. Cadastrar notas",
+        "3. Ver projetos",
+        "4. Ver media geral dos projetos",
+        "5. Ver maior e menor nota final",
+        "6. Ver numero de projetos acima da media",
+        "7. Exibir medias em ordem crescente",
+        "8. Ver projetos com pelo menos uma nota < 7",
+        "9. Mostrar projetos classificados",
+        "10. Sair"};
+
     system("cls");
-    for (i = 0; i < 11; i++)
-        escreveTexto(3 + i, 10, vet[i], 10);
-    escreveTexto(2 + op, 10, vet[op - 1], 5);
+    for (int i = 0; i < 10; i++)
+    {
+        if (i == op - 1)
+            escreveTexto(3 + i, 10, vet[i], 11);
+        else
+            escreveTexto(3 + i, 10, vet[i], 15);
+    }
 }
 
 // 1. Cadastrar o código e o percentual de cumprimento das etapas dos projetos
 void cadastrarProjeto(struct Projeto *projetos)
 {
-    for (int i = 0; i < 30; i++)
+    int i;
+    int posLivre = -1;
+
+    for (i = 0; i < 30; i++)
     {
-        double cod;
-        int jaCadastrado = 0;
         if (projetos[i].existe == 0)
         {
-            projetos[i].existe = 1;
-
-            do
-            {
-                printf("Digite o codigo do projeto: ");
-                scanf("%lf", &cod);
-                int j = 0;
-                for (; j < 30; j++)
-                {
-                    if (cod == projetos[j].codigo)
-                    {
-                        jaCadastrado = 1;
-                    }
-                    else
-                    {
-                        jaCadastrado = 0;
-                    }
-                }
-            } while (jaCadastrado == 1);
-
-            printf("Digite o percentual de cumprimento das etapas: ");
-            scanf("%lf", &projetos[i].percentual);
+            posLivre = i;
             break;
         }
     }
-    struct Projeto projeto;
-    printf("Digite o codigo do projeto: ");
-    scanf("%lf", &projeto.codigo);
-    printf("Digite o percentual de cumprimento das etapas: ");
-    scanf("%lf", &projeto.percentual);
-    projetos[0] = projeto;
+
+    if (posLivre == -1)
+    {
+        printf("Capacidade maxima de projetos atingida (30/30)!\n");
+        return;
+    }
+
+    double cod;
+    int jaCadastrado;
+
+    do
+    {
+        jaCadastrado = 0;
+        printf("Digite o codigo do projeto: ");
+        scanf("%lf", &cod);
+
+        for (i = 0; i < 30; i++)
+        {
+            if (projetos[i].existe == 1 && projetos[i].codigo == cod)
+            {
+                jaCadastrado = 1;
+                printf("Codigo ja existente! Digite outro.\n");
+                break;
+            }
+        }
+    } while (jaCadastrado);
+
+    projetos[posLivre].codigo = cod;
+    printf("Digite o percentual de cumprimento das etapas (0-100%%): ");
+    scanf("%lf", &projetos[posLivre].percentual);
+    projetos[posLivre].existe = 1;
+
+    printf("\nProjeto cadastrado com sucesso na posicao %d!\n", posLivre + 1);
 }
-// 2. Cadastrar as notas dos projetos, indicando se a nota corresponde à primeira ou à segunda avaliação
+
+// 2. Cadastrar as notas dos projetos
 void cadastrarNotas(struct Projeto *projetos)
 {
-    int i;
-    int cod;
+    double cod;
+    int achou = 0;
+
     printf("Digite o codigo do projeto: ");
-    scanf("%d", &cod);
-    for (i = 0; i < 30; i++)
+    scanf("%lf", &cod);
+
+    for (int i = 0; i < 30; i++)
     {
         if (projetos[i].existe == 1 && projetos[i].codigo == cod)
         {
-            printf("Digite a nota 1 do projeto %lf: ", projetos[i].codigo);
+            achou = 1;
+            printf("Digite a nota 1 do projeto %.0lf: ", projetos[i].codigo);
             scanf("%lf", &projetos[i].nota1);
-            printf("Digite a nota 2 do projeto %lf: ", projetos[i].codigo);
+            printf("Digite a nota 2 do projeto %.0lf: ", projetos[i].codigo);
             scanf("%lf", &projetos[i].nota2);
+
+            // Calcula e armazena a média na RAM
+            projetos[i].media = (projetos[i].nota1 + projetos[i].nota2) / 2.0;
+
+            printf("Notas cadastradas e media calculada (%.2lf) com sucesso!\n", projetos[i].media);
+            break;
         }
     }
-    printf("Notas cadastradas com sucesso!\n");
+
+    if (!achou)
+    {
+        printf("Projeto com o codigo %.0lf nao foi encontrado!\n", cod);
+    }
 }
 
 // 3. Exibir todos os projetos, com código, notas e percentual de cumprimento
 void verProjetos(struct Projeto *projetos)
 {
-    int i, count = 0;
-    for (i = 0; i < 30; i++)
+    int count = 0;
+    printf("LISTA DE PROJETOS\n\n");
+
+    for (int i = 0; i < 30; i++)
     {
         if (projetos[i].existe == 1)
         {
-            printf("Projeto %d:\n", i + 1);
-            printf("Codigo: %lf\n", projetos[i].codigo);
-            printf("Percentual de cumprimento: %lf\n", projetos[i].percentual);
-            printf("Nota 1: %lf\n", projetos[i].nota1);
-            printf("Nota 2: %lf\n", projetos[i].nota2);
+            printf("Projeto [%d]\n", i + 1);
+            printf("  Codigo: %.0lf\n", projetos[i].codigo);
+            printf("  Cumprimento: %.2lf%%\n", projetos[i].percentual);
+            printf("  Nota 1: %.2lf\n", projetos[i].nota1);
+            printf("  Nota 2: %.2lf\n", projetos[i].nota2);
+            printf("  Media Final: %.2lf\n", projetos[i].media);
             printf("\n");
             count++;
         }
     }
 
     if (count == 0)
-        printf("Sem projetos cadastrados!");
-}
-// 4. Calcular e exibir a média geral dos projetos
-
-double mediaGeral(struct Projeto *projetos, int numProjetos)
-{
-    int i;
-    double soma = 0.0;
-    for (i = 0; i < numProjetos; i++)
     {
-        soma += projetos[i].nota1 + projetos[i].nota2;
+        printf("Nenhum projeto cadastrado ate o momento.\n");
     }
-    double media_geral = soma / (numProjetos * 2);
-    printf("Media geral dos projetos: %lf\n", media_geral);
+}
+
+// 4. Calcular e exibir a média geral dos projetos
+double mediaGeral(struct Projeto *projetos)
+{
+    double soma = 0.0;
+    int count = 0;
+
+    for (int i = 0; i < 30; i++)
+    {
+        if (projetos[i].existe == 1)
+        {
+            soma += projetos[i].media;
+            count++;
+        }
+    }
+
+    if (count == 0)
+    {
+        printf("Nao ha projetos cadastrados para calcular a media geral.\n");
+        return 0.0;
+    }
+
+    double media_geral = soma / count;
+    printf("Media geral dos %d projetos cadastrados: %.2lf\n", count, media_geral);
     return media_geral;
 }
 
 // 5. Exibir a maior e a menor nota final
 void maiorEmenorMedia(struct Projeto *projetos)
 {
-    int i;
-    double maior = 0, menor = 0;
-    for (i = 0; i < 29; i++)
+    double maior = -1, menor = 999;
+    int encontrou = 0;
+
+    for (int i = 0; i < 30; i++)
     {
         if (projetos[i].existe == 1)
         {
-            if (i == 0)
+            if (!encontrou)
             {
                 maior = projetos[i].media;
                 menor = projetos[i].media;
+                encontrou = 1;
             }
-
-            if (projetos[i + 1].existe == 1)
+            else
             {
-                if (maior < projetos[i + 1].media)
-                {
-                    maior = projetos[i + 1].media;
-                }
-                if (menor > projetos[i + 1].media)
-                {
-                    menor = projetos[i + 1].media;
-                }
+                if (projetos[i].media > maior)
+                    maior = projetos[i].media;
+                if (projetos[i].media < menor)
+                    menor = projetos[i].media;
             }
         }
+    }
+
+    if (encontrou)
+    {
+        printf("Maior nota final (media): %.2lf\n", maior);
+        printf("Menor nota final (media): %.2lf\n", menor);
+    }
+    else
+    {
+        printf("Nenhum projeto cadastrado.\n");
     }
 }
 
 // 6. Contar quantos projetos ficaram acima da média geral
 void contarProjetosAcimaMedia(struct Projeto *projetos)
 {
-    int i, count = 0;
-    for (i = 0; i < 30; i++)
+    double soma = 0.0;
+    int totalProjetos = 0;
+
+    for (int i = 0; i < 30; i++)
     {
-        if (projetos[i].existe == 1 && projetos[i].media > mediaGeral(projetos, 30))
+        if (projetos[i].existe == 1)
+        {
+            soma += projetos[i].media;
+            totalProjetos++;
+        }
+    }
+
+    if (totalProjetos == 0)
+    {
+        printf("Nenhum projeto cadastrado.\n");
+        return;
+    }
+
+    double mGeral = soma / totalProjetos;
+    int count = 0;
+
+    for (int i = 0; i < 30; i++)
+    {
+        if (projetos[i].existe == 1 && projetos[i].media > mGeral)
         {
             count++;
         }
     }
-    printf("Numero de projetos acima da media geral: %d\n", count);
+
+    printf("Media Geral Atual: %.2lf\n", mGeral);
+    printf("Numero de projetos com media FINAL acima da media geral: %d\n", count);
 }
 
-// 7. Exibir as notas finais em ordem crescente, acompanhadas dos respectivos códigos (qsort)
+// 7. Exibir as notas finais em ordem crescente, acompanhadas dos respectivos códigos
 int compareNotas(const void *a, const void *b)
 {
-    struct Projeto *projetoA = (struct Projeto *)a;
-    struct Projeto *projetoB = (struct Projeto *)b;
+    struct Projeto *pA = (struct Projeto *)a;
+    struct Projeto *pB = (struct Projeto *)b;
 
-    if (projetoA->media < projetoB->media)
+    if (pA->media < pB->media)
         return -1;
-    else if (projetoA->media > projetoB->media)
+    if (pA->media > pB->media)
         return 1;
-    else
-        return 0;
-
+    return 0;
 }
 
 void exibirNotasCrescente(struct Projeto *projetos)
 {
-    qsort(projetos, 30, sizeof(struct Projeto), compareNotas);
-}
+    struct Projeto temp[30];
+    int count = 0;
 
-// 8. Mostrar os códigos dos projetos que receberam nota menor que 7,0 em pelo menos uma avaliação
-void menorQueSeteEmUma(struct Projeto *projetos)
-{
-    int i = 0;
-    double codigos[30];
-
-    for (; i < 30; i++)
-    {
-        if (projetos[i].existe == 1 && (projetos[i].nota1 < 7 || projetos[i].nota2 < 7))
-        {
-            escreveTexto(5, 5 + i, (char)projetos[i].codigo, 10);
-        }
-    }
-}
-
-// 9. Mostrar os projetos classificados para a exposição final, exibindo código, nota final e percentual de cumprimento
-void mostraClassificados(struct Projeto *projetos)
-{
-    int i = 0;
-    double codigos[30];
-
-    for (; i < 30; i++)
+    for (int i = 0; i < 30; i++)
     {
         if (projetos[i].existe == 1)
         {
-            escreveTexto(5, 5 + i, (char)projetos[i].codigo, 10);
+            temp[count] = projetos[i];
+            count++;
         }
     }
+
+    if (count == 0)
+    {
+        printf("Nenhum projeto cadastrado para ordenar.\n");
+        return;
+    }
+    qsort(temp, count, sizeof(struct Projeto), compareNotas);
+
+    printf("MEDIAS FINAIS EM ORDEM CRESCENTE\n\n");
+    for (int i = 0; i < count; i++)
+    {
+        printf("Codigo: %.0lf | Media Final: %.2lf\n", temp[i].codigo, temp[i].media);
+    }
+}
+
+// 8. Mostrar os códigos dos projetos com nota menor que 7 em pelo menos uma avaliação
+void menorQueSeteEmUma(struct Projeto *projetos)
+{
+    printf("PROJETOS COM PELO MENOS UMA NOTA < 7.0 \n\n");
+    int encontrou = 0;
+    for (int i = 0; i < 30; i++)
+    {
+        if (projetos[i].existe == 1 && (projetos[i].nota1 < 7.0 || projetos[i].nota2 < 7.0))
+        {
+            printf("Codigo: %.0lf (Nota1: %.2lf, Nota2: %.2lf)\n", projetos[i].codigo, projetos[i].nota1, projetos[i].nota2);
+            encontrou = 1;
+        }
+    }
+    if (!encontrou)
+        printf("Nenhum projeto encontrado nesta condicao.\n");
+}
+
+// 9. Mostrar os projetos classificados
+void mostraClassificados(struct Projeto *projetos)
+{
+    printf("PROJETOS CLASSIFICADOS\n\n");
+    int encontrou = 0;
+    for (int i = 0; i < 30; i++)
+    {
+        if (projetos[i].existe == 1)
+        {
+            printf("Codigo: %.0lf | Media: %.2lf | Cumprimento: %.2lf%%\n", projetos[i].codigo, projetos[i].media, projetos[i].percentual);
+            encontrou = 1;
+        }
+    }
+    if (!encontrou)
+        printf("Nenhum projeto cadastrado.\n");
 }
 
 // 10. Sair
 void sair()
 {
-    escreveTexto(5, 5, "Obrigado por usar nossas solucoes\n\tSee u soon!", 10);
+    system("cls");
+    printf("Obrigado por usar nossas solucoes!\nA ate logo!\n");
 }
