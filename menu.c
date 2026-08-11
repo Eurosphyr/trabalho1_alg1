@@ -214,11 +214,12 @@ void cadastrarProjeto(struct Projeto *projetos)
     printf("\nProjeto cadastrado com sucesso na posicao %d!\n", posLivre + 1);
 }
 
-// 2. Cadastrar as notas dos projetos
+//  2. Cadastrar as notas dos projetos, indicando se a nota corresponde à primeira ou à segunda avaliação
 void cadastrarNotas(struct Projeto *projetos)
 {
     double cod;
     int achou = 0;
+    int opcaoNota;
 
     printf("Digite o codigo do projeto: ");
     scanf("%lf", &cod);
@@ -228,15 +229,33 @@ void cadastrarNotas(struct Projeto *projetos)
         if (projetos[i].existe == 1 && projetos[i].codigo == cod)
         {
             achou = 1;
-            printf("Digite a nota 1 do projeto %.0lf: ", projetos[i].codigo);
-            scanf("%lf", &projetos[i].nota1);
-            printf("Digite a nota 2 do projeto %.0lf: ", projetos[i].codigo);
-            scanf("%lf", &projetos[i].nota2);
 
-            // Calcula e armazena a média na RAM
+            printf("\nQual avaliacao deseja cadastrar?\n");
+            printf("1 - Primeira avaliacao (Nota 1)\n");
+            printf("2 - Segunda avaliacao (Nota 2)\n");
+            printf("Escolha uma opcao: ");
+            scanf("%d", &opcaoNota);
+
+            if (opcaoNota == 1)
+            {
+                printf("Digite a NOTA 1 do projeto %.0lf: ", projetos[i].codigo);
+                scanf("%lf", &projetos[i].nota1);
+                printf("Nota 1 cadastrada com sucesso!\n");
+            }
+            else if (opcaoNota == 2)
+            {
+                printf("Digite a NOTA 2 do projeto %.0lf: ", projetos[i].codigo);
+                scanf("%lf", &projetos[i].nota2);
+                printf("Nota 2 cadastrada com sucesso!\n");
+            }
+            else
+            {
+                printf("Opcao invalida! Operacao cancelada.\n");
+                return;
+            }
+
             projetos[i].media = (projetos[i].nota1 + projetos[i].nota2) / 2.0;
-
-            printf("Notas cadastradas e media calculada (%.2lf) com sucesso!\n", projetos[i].media);
+            printf("Media atual do projeto: %.2lf\n", projetos[i].media);
             break;
         }
     }
@@ -414,7 +433,7 @@ void exibirNotasCrescente(struct Projeto *projetos)
     }
 }
 
-// 8. Mostrar os códigos dos projetos com nota menor que 7 em pelo menos uma avaliação
+// 8. Mostrar os códigos dos projetos que receberam nota menor que 7,0 em pelo menos uma avaliação
 void menorQueSeteEmUma(struct Projeto *projetos)
 {
     printf("PROJETOS COM PELO MENOS UMA NOTA < 7.0 \n\n");
@@ -431,7 +450,7 @@ void menorQueSeteEmUma(struct Projeto *projetos)
         printf("Nenhum projeto encontrado nesta condicao.\n");
 }
 
-// 9. Mostrar os projetos classificados
+// 9. Mostrar os projetos classificados para a exposição final, exibindo código, nota final e percentual de cumprimento
 void mostraClassificados(struct Projeto *projetos)
 {
     printf("PROJETOS CLASSIFICADOS\n\n");
@@ -452,5 +471,5 @@ void mostraClassificados(struct Projeto *projetos)
 void sair()
 {
     system("cls");
-    printf("Obrigado por usar nossas solucoes!\nA ate logo!\n");
+    printf("Obrigado por usar nossas solucoes!\n\tSee u soon!\n");
 }
