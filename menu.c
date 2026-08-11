@@ -7,6 +7,8 @@
 struct Projeto
 {
     int existe;
+    int existenota1;
+    int existenota2;
     double codigo;
     double percentual;
     double nota1;
@@ -133,6 +135,8 @@ void iniciaArray(struct Projeto *projetos)
     for (i = 0; i < 30; i++)
     {
         projetos[i].existe = 0;
+        projetos[i].existenota1 = 0;
+        projetos[i].existenota2 = 0;
         projetos[i].codigo = 0;
         projetos[i].percentual = 0;
         projetos[i].nota1 = 0;
@@ -206,12 +210,18 @@ void cadastrarProjeto(struct Projeto *projetos)
         }
     } while (jaCadastrado);
 
-    projetos[posLivre].codigo = cod;
-    printf("Digite o percentual de cumprimento das etapas (0-100%%): ");
-    scanf("%lf", &projetos[posLivre].percentual);
-    projetos[posLivre].existe = 1;
+    do
+    {
+        printf("Digite o percentual de cumprimento das etapas (0 a 100): ");
+        scanf("%lf", &projetos[posLivre].percentual);
+        if (projetos[posLivre].percentual < 0 || projetos[posLivre].percentual > 100)
+        {
+            printf("Percentual invalido! Informe um valor entre 0 e 100.\n");
+        }
+    } while (projetos[posLivre].percentual < 0 || projetos[posLivre].percentual > 100);
 
-    printf("\nProjeto cadastrado com sucesso na posicao %d!\n", posLivre + 1);
+    projetos[posLivre].existe = 1;
+    printf("\nProjeto %.0lf cadastrado com sucesso!\n", cod);
 }
 
 //  2. Cadastrar as notas dos projetos, indicando se a nota corresponde à primeira ou à segunda avaliação
@@ -220,6 +230,7 @@ void cadastrarNotas(struct Projeto *projetos)
     double cod;
     int achou = 0;
     int opcaoNota;
+    double notaTemp;
 
     printf("Digite o codigo do projeto: ");
     scanf("%lf", &cod);
@@ -236,26 +247,44 @@ void cadastrarNotas(struct Projeto *projetos)
             printf("Escolha uma opcao: ");
             scanf("%d", &opcaoNota);
 
-            if (opcaoNota == 1)
+            if (opcaoNota == 1 || opcaoNota == 2)
             {
-                printf("Digite a NOTA 1 do projeto %.0lf: ", projetos[i].codigo);
-                scanf("%lf", &projetos[i].nota1);
-                printf("Nota 1 cadastrada com sucesso!\n");
-            }
-            else if (opcaoNota == 2)
-            {
-                printf("Digite a NOTA 2 do projeto %.0lf: ", projetos[i].codigo);
-                scanf("%lf", &projetos[i].nota2);
-                printf("Nota 2 cadastrada com sucesso!\n");
+                // Validação de nota entre 0 e 10
+                do
+                {
+                    printf("Digite a nota (0.0 a 10.0): ");
+                    scanf("%lf", &notaTemp);
+                    if (notaTemp < 0.0 || notaTemp > 10.0)
+                    {
+                        printf("Nota invalida! Deve estar entre 0.0 e 10.0.\n");
+                    }
+                } while (notaTemp < 0.0 || notaTemp > 10.0);
+
+                if (opcaoNota == 1)
+                {
+                    projetos[i].nota1 = notaTemp;
+                    projetos[i].existenota1 = 1;
+                    printf("Nota 1 cadastrada!\n");
+                }
+                else
+                {
+                    projetos[i].nota2 = notaTemp;
+                    projetos[i].existenota2 = 1;
+                    printf("Nota 2 cadastrada!\n");
+                }
+
+                // Recalcula média se ambas as notas estiverem lançadas
+                projetos[i].media = (projetos[i].nota1 + projetos[i].nota2) / 2.0;
+
+                if (projetos[i].existenota1 && projetos[i].existenota2)
+                {
+                    printf("Media final atualizada: %.2lf\n", projetos[i].media);
+                }
             }
             else
             {
-                printf("Opcao invalida! Operacao cancelada.\n");
-                return;
+                printf("Opcao de avaliacao invalida!\n");
             }
-
-            projetos[i].media = (projetos[i].nota1 + projetos[i].nota2) / 2.0;
-            printf("Media atual do projeto: %.2lf\n", projetos[i].media);
             break;
         }
     }
