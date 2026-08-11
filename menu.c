@@ -4,6 +4,16 @@
 #include <conio.h>
 #include <stdlib.h>
 
+struct Projeto
+{
+    int existe;
+    double codigo;
+    double percentual;
+    double nota1;
+    double nota2;
+    double media;
+};
+
 void gotoxy(int x, int y);
 int setColor(char color);
 void escreveTexto(int x, int y, char texto[], int cor);
@@ -16,16 +26,6 @@ double mediaGeral(struct Projeto *projetos, int numProjetos);
 void menorQueSeteEmUma(struct Projeto *projetos);
 void mostraClassificados(struct Projeto *projetos);
 void sair();
-
-struct Projeto
-{
-    int existe;
-    double codigo;
-    double percentual;
-    double nota1;
-    double nota2;
-    double media;
-};
 
 int main()
 {
