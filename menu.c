@@ -259,46 +259,49 @@ void cadastrarNotas(double projetos[30][5])
             if (projetos[i][0] == cod)
             {
                 achou = 1;
-
-                printf("\nQual avaliacao deseja cadastrar?\n");
-                printf("1 - Primeira avaliacao (Nota 1)\n");
-                printf("2 - Segunda avaliacao (Nota 2)\n");
-                printf("Escolha uma opcao: ");
-                scanf("%d", &opcaoNota);
-
-                if (opcaoNota == 1 || opcaoNota == 2)
+                
+                do
                 {
-                    // Validação de nota entre 0 e 10
-                    do
-                    {
-                        printf("Digite a nota (0.0 a 10.0): ");
-                        scanf("%lf", &notaTemp);
-                        if (notaTemp < 0.0 || notaTemp > 10.0)
-                        {
-                            printf("Nota invalida! Deve estar entre 0.0 e 10.0.\n");
-                        }
-                    } while (notaTemp < 0.0 || notaTemp > 10.0);
+                    printf("\nQual avaliacao deseja cadastrar?\n");
+                    printf("1 - Primeira avaliacao (Nota 1)\n");
+                    printf("2 - Segunda avaliacao (Nota 2)\n");
+                    printf("Escolha uma opcao: ");
+                    scanf("%d", &opcaoNota);
 
-                    if (opcaoNota == 1)
+                    if (opcaoNota == 1 || opcaoNota == 2)
                     {
-                        projetos[i][2] = notaTemp;
-                        printf("Nota 1 cadastrada!\n");
+                        // Validação de nota entre 0 e 10
+                        do
+                        {
+                            printf("Digite a nota (0.0 a 10.0): ");
+                            scanf("%lf", &notaTemp);
+                            if (notaTemp < 0.0 || notaTemp > 10.0)
+                            {
+                                printf("Nota invalida! Deve estar entre 0.0 e 10.0.\n");
+                            }
+                        } while (notaTemp < 0.0 || notaTemp > 10.0);
+
+                        if (opcaoNota == 1)
+                        {
+                            projetos[i][2] = notaTemp;
+                            printf("Nota 1 cadastrada!\n");
+                        }
+                        else
+                        {
+                            projetos[i][3] = notaTemp;
+                            printf("Nota 2 cadastrada!\n");
+                        }
+
+                        // Recalcula média se ambas as notas estiverem lançadas
+                        projetos[i][4] = (projetos[i][2] + projetos[i][3]) / 2.0;
+                        printf("Media final: %.2lf\n", projetos[i][4]);
                     }
                     else
                     {
-                        projetos[i][3] = notaTemp;
-                        printf("Nota 2 cadastrada!\n");
+                        printf("Opcao de avaliacao invalida!\n");
                     }
-
-                    // Recalcula média se ambas as notas estiverem lançadas
-                    projetos[i][4] = (projetos[i][2] + projetos[i][3]) / 2.0;
-                    printf("Media final: %.2lf\n", projetos[i][4]);
                 }
-                else
-                {
-                    printf("Opcao de avaliacao invalida!\n");
-                }
-                break;
+                while(opcaoNota != 1 && opcaoNota != 2);
             }
         }
 
@@ -481,12 +484,32 @@ void exibirNotasCrescente(double projetos[30][5])
         }
     }
 
-    if (count == 0)
+    for(int i = 0;i < count-1;i++)
     {
-        printf("Nenhum projeto cadastrado para ordenar.\n");
-        return;
+        for(int j = i+1;j < count;j++)
+        {
+            if(temp[i][4] > temp[j][4]){
+                double aux[5];
+                aux[0] = temp[i][0];
+                aux[1] = temp[i][1];
+                aux[2] = temp[i][2];
+                aux[3] = temp[i][3];
+                aux[4] = temp[i][4];
+                
+                temp[i][0] = temp[j][0];
+                temp[i][1] = temp[j][1];
+                temp[i][2] = temp[j][2];
+                temp[i][3] = temp[j][3];
+                temp[i][4] = temp[j][4];
+                
+                temp[j][0] = aux[0];
+                temp[j][1] = aux[1];
+                temp[j][2] = aux[2];
+                temp[j][3] = aux[3];
+                temp[j][4] = aux[4];
+            }
+        }
     }
-
     printf("-------MEDIAS FINAIS EM ORDEM CRESCENTE--------\n\n");
     for (int i = 0; i < count; i++)
     {
@@ -525,7 +548,7 @@ void mostraClassificados(double projetos[30][5])
     }
 
     printf("-------PROJETOS CLASSIFICADOS--------\n\n");
-    int encontrou = 0;
+    int encontrou = 0, classificado = 0;
     for (int i = 0; i < 30; i++)
     {
         if (projetos[i][0] != -1)
@@ -533,10 +556,14 @@ void mostraClassificados(double projetos[30][5])
             if(projetos[i][4] >= 7.0 && projetos[i][1] > 70.0)
             {
                 printf("Codigo: %.0lf | Media: %.2lf | Cumprimento: %.2lf%%\n", projetos[i][0], projetos[i][4], projetos[i][1]);
+                classificado = 1;
             }
             encontrou = 1;
         }
     }
+
+    if(!classificado)
+        printf("Nenhum projeto classificado!\n");
     if (!encontrou)
         printf("Nenhum projeto cadastrado.\n");
 }
