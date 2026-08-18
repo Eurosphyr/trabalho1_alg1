@@ -16,6 +16,7 @@ void gotoxy(int x, int y);
 int setColor(char color);
 void escreveTexto(int x, int y, char texto[], int cor);
 void desenhaMenu(int op);
+void desenhaNenhumCadastrado();
 void iniciaArray(double projetos[30][5]);
 void cadastrarProjeto(double projetos[30][5]);
 void cadastrarNotas(double projetos[30][5]);
@@ -125,6 +126,12 @@ void escreveTexto(int x, int y, char texto[], int cor)
     printf("%s", texto);
 }
 
+void desenhaNenhumCadastrado()
+{
+    system("cls");
+    escreveTexto(5,10,"Nenhum projeto cadastrado!", 15);
+}
+
 void iniciaArray(double projetos[30][5])
 {
     int i;
@@ -189,19 +196,28 @@ void cadastrarProjeto(double projetos[30][5])
     do
     {
         jaCadastrado = 0;
+        
         printf("Digite o codigo do projeto: ");
         scanf("%lf", &cod);
 
         for (i = 0; i < 30; i++)
         {
+            if(cod < 0)
+            {
+               printf("Codigo invalido!\n");
+               break;
+            }
+            
             if (projetos[i][0] != -1 && projetos[i][0] == cod)
             {
                 jaCadastrado = 1;
-                printf("Codigo ja existente! Digite outro.\n");
+                printf("Projeto ja existente! Digite outro.\n");
                 break;
             }
         }
-    } while (jaCadastrado);
+    } while (jaCadastrado || cod < 0);
+
+    projetos[posLivre][0] = cod;
 
     do
     {
@@ -222,81 +238,98 @@ void cadastrarNotas(double projetos[30][5])
     double cod, notaTemp;
     int achou = 0, opcaoNota, count = 0;
 
-    printf("Digite o codigo do projeto: ");
-    scanf("%lf", &cod);
+    if(projetos[0][0] == -1){
+        desenhaNenhumCadastrado();
+        return;
+    }
 
-    for (int i = 0; i < 30; i++)
+    do
     {
-        if (projetos[i][0] == cod)
+        printf("Digite o codigo do projeto: ");
+        scanf("%lf", &cod);
+
+        for (int i = 0; i < 30; i++)
         {
-            achou = 1;
-
-            printf("\nQual avaliacao deseja cadastrar?\n");
-            printf("1 - Primeira avaliacao (Nota 1)\n");
-            printf("2 - Segunda avaliacao (Nota 2)\n");
-            printf("Escolha uma opcao: ");
-            scanf("%d", &opcaoNota);
-
-            if (opcaoNota == 1 || opcaoNota == 2)
+            if(cod < 0)
             {
-                // Validação de nota entre 0 e 10
-                do
-                {
-                    printf("Digite a nota (0.0 a 10.0): ");
-                    scanf("%lf", &notaTemp);
-                    if (notaTemp < 0.0 || notaTemp > 10.0)
-                    {
-                        printf("Nota invalida! Deve estar entre 0.0 e 10.0.\n");
-                    }
-                } while (notaTemp < 0.0 || notaTemp > 10.0);
+                printf("Codigo invalido!\n");
+                break;
+            }
 
-                if (opcaoNota == 1)
+            if (projetos[i][0] == cod)
+            {
+                achou = 1;
+
+                printf("\nQual avaliacao deseja cadastrar?\n");
+                printf("1 - Primeira avaliacao (Nota 1)\n");
+                printf("2 - Segunda avaliacao (Nota 2)\n");
+                printf("Escolha uma opcao: ");
+                scanf("%d", &opcaoNota);
+
+                if (opcaoNota == 1 || opcaoNota == 2)
                 {
-                    projetos[i][2] = notaTemp;
-                    printf("Nota 1 cadastrada!\n");
+                    // Validação de nota entre 0 e 10
+                    do
+                    {
+                        printf("Digite a nota (0.0 a 10.0): ");
+                        scanf("%lf", &notaTemp);
+                        if (notaTemp < 0.0 || notaTemp > 10.0)
+                        {
+                            printf("Nota invalida! Deve estar entre 0.0 e 10.0.\n");
+                        }
+                    } while (notaTemp < 0.0 || notaTemp > 10.0);
+
+                    if (opcaoNota == 1)
+                    {
+                        projetos[i][2] = notaTemp;
+                        printf("Nota 1 cadastrada!\n");
+                    }
+                    else
+                    {
+                        projetos[i][3] = notaTemp;
+                        printf("Nota 2 cadastrada!\n");
+                    }
+
+                    // Recalcula média se ambas as notas estiverem lançadas
+                    projetos[i][4] = (projetos[i][2] + projetos[i][3]) / 2.0;
+                    printf("Media final: %.2lf\n", projetos[i][4]);
                 }
                 else
                 {
-                    projetos[i][3] = notaTemp;
-                    printf("Nota 2 cadastrada!\n");
+                    printf("Opcao de avaliacao invalida!\n");
                 }
+                break;
+            }
+        }
 
-                // Recalcula média se ambas as notas estiverem lançadas
-                projetos[i][4] = (projetos[i][2] + projetos[i][3]) / 2.0;
-                printf("Media final: %.2lf\n", projetos[i][4]);
-            }
-            else
-            {
-                printf("Opcao de avaliacao invalida!\n");
-            }
-            break;
+        if (!achou && cod >= 0)
+        {
+            printf("Projeto com o codigo %.0lf nao foi encontrado!\n", cod);
         }
     }
-
-    if (!achou)
-    {
-        printf("Projeto com o codigo %.0lf nao foi encontrado!\n", cod);
-    }
+    while(!achou || cod < 0);
 }
 
 // 3. Exibir todos os projetos, com código, notas e percentual de cumprimento
 void verProjetos(double projetos[30][5])
 {
-    int count = 0;
-    printf("LISTA DE PROJETOS\n\n");
+    if(projetos[0][0] == -1){
+        desenhaNenhumCadastrado();
+        return;
+    }
 
+    printf("--------LISTA DE PROJETOS--------\n\n");
     for (int i = 0; i < 30; i++)
     {
         if (projetos[i][0] != -1)
         {
-            printf("Projeto [%d]\n", i + 1);
+            printf("Projeto [%.0lf]\n", projetos[i][0]);
             printf("  Codigo: %.0lf\n", projetos[i][0]);
             printf("  Cumprimento: %.2lf%%\n", projetos[i][1]);
             printf("  Nota 1: %.2lf\n", projetos[i][2]);
             printf("  Nota 2: %.2lf\n", projetos[i][3]);
             printf("  Media Final: %.2lf\n", projetos[i][4]);
             printf("\n");
-            count++;
         }
     }
 }
@@ -304,6 +337,11 @@ void verProjetos(double projetos[30][5])
 // 4. Calcular e exibir a média geral dos projetos
 double mediaGeral(double projetos[30][5])
 {
+    if(projetos[0][0] == -1){
+        desenhaNenhumCadastrado();
+        return 0.0;
+    }
+
     double soma = 0.0;
     int count = 0;
 
@@ -330,24 +368,38 @@ double mediaGeral(double projetos[30][5])
 // 5. Exibir a maior e a menor nota final
 void maiorEmenorMedia(double projetos[30][5])
 {
-    double maior = 0, menor = 0;
+    if(projetos[0][0] == -1){
+        desenhaNenhumCadastrado();
+        return;
+    }
+
+    double maior = 0, menor = 0, codMaior = 0, codMenor = 0;
     int i = 0, encontrou = 0;
 
     for (; i < 30; i++)
     {
-        if (projetos[i][0] != 1)
+        if (projetos[i][0] != -1)
         {
             if(i == 0)
             {
                 maior = projetos[i][4];
                 menor = projetos[i][4];
+                codMaior = projetos[i][0];
+                codMenor = projetos[i][0];
             }
             else
             {
                 if (projetos[i][4] > maior)
+                {
                     maior = projetos[i][4];
+                    codMaior = projetos[i][0];
+                }
+                    
                 if (projetos[i][4] < menor)
+                {
                     menor = projetos[i][4];
+                    codMenor = projetos[i][0];
+                }
             }
             encontrou = 1;
         }
@@ -355,8 +407,8 @@ void maiorEmenorMedia(double projetos[30][5])
 
     if (encontrou)
     {
-        printf("Maior nota final (media): %.2lf\n", maior);
-        printf("Menor nota final (media): %.2lf\n", menor);
+        printf("Maior nota final (media): %.2lf | Codigo: %.0lf\n", maior, codMaior);
+        printf("Menor nota final (media): %.2lf | Codigo: %.0lf\n", menor, codMenor);
     }
     else
     {
@@ -367,6 +419,11 @@ void maiorEmenorMedia(double projetos[30][5])
 // 6. Contar quantos projetos ficaram acima da média geral
 void contarProjetosAcimaMedia(double projetos[30][5])
 {
+    if(projetos[0][0] == -1){
+        desenhaNenhumCadastrado();
+        return;
+    }
+
     double soma = 0.0;
     int totalProjetos = 0;
 
@@ -403,6 +460,11 @@ void contarProjetosAcimaMedia(double projetos[30][5])
 // 7. Exibir as notas finais em ordem crescente, acompanhadas dos respectivos códigos
 void exibirNotasCrescente(double projetos[30][5])
 {
+    if(projetos[0][0] == -1){
+        desenhaNenhumCadastrado();
+        return;
+    }
+
     double temp[30][5];
     int count = 0;
 
@@ -425,7 +487,7 @@ void exibirNotasCrescente(double projetos[30][5])
         return;
     }
 
-    printf("MEDIAS FINAIS EM ORDEM CRESCENTE\n\n");
+    printf("-------MEDIAS FINAIS EM ORDEM CRESCENTE--------\n\n");
     for (int i = 0; i < count; i++)
     {
         printf("Codigo: %.0lf | Media Final: %.2lf\n", temp[i][0], temp[i][4]);
@@ -435,13 +497,18 @@ void exibirNotasCrescente(double projetos[30][5])
 // 8. Mostrar os códigos dos projetos que receberam nota menor que 7,0 em pelo menos uma avaliação
 void menorQueSeteEmUma(double projetos[30][5])
 {
-    printf("PROJETOS COM PELO MENOS UMA NOTA < 7.0 \n\n");
+    if(projetos[0][0] == -1){
+        desenhaNenhumCadastrado();
+        return;
+    }
+
+    printf("--------PROJETOS COM PELO MENOS UMA NOTA < 7.0--------\n\n");
     int encontrou = 0;
     for (int i = 0; i < 30; i++)
     {
         if (projetos[i][0] != -1 && (projetos[i][2] < 7.0 || projetos[i][3] < 7.0))
         {
-            printf("Codigo: %.0lf (Nota1: %.2lf, Nota2: %.2lf)\n", projetos[i][0], projetos[i][1], projetos[i][2]);
+            printf("Codigo: %.0lf (Nota1: %.2lf, Nota2: %.2lf)\n", projetos[i][0], projetos[i][2], projetos[i][3]);
             encontrou = 1;
         }
     }
@@ -452,13 +519,21 @@ void menorQueSeteEmUma(double projetos[30][5])
 // 9. Mostrar os projetos classificados para a exposição final, exibindo código, nota final e percentual de cumprimento
 void mostraClassificados(double projetos[30][5])
 {
-    printf("PROJETOS CLASSIFICADOS\n\n");
+    if(projetos[0][0] == -1){
+        desenhaNenhumCadastrado();
+        return;
+    }
+
+    printf("-------PROJETOS CLASSIFICADOS--------\n\n");
     int encontrou = 0;
     for (int i = 0; i < 30; i++)
     {
         if (projetos[i][0] != -1)
         {
-            printf("Codigo: %.0lf | Media: %.2lf | Cumprimento: %.2lf%%\n", projetos[i][0], projetos[i][4], projetos[i][1]);
+            if(projetos[i][4] >= 7.0 && projetos[i][1] > 70.0)
+            {
+                printf("Codigo: %.0lf | Media: %.2lf | Cumprimento: %.2lf%%\n", projetos[i][0], projetos[i][4], projetos[i][1]);
+            }
             encontrou = 1;
         }
     }
@@ -470,5 +545,5 @@ void mostraClassificados(double projetos[30][5])
 void sair()
 {
     system("cls");
-    printf("Obrigado por usar nossas solucoes!\n\tSee u soon!\n");
+    escreveTexto(0,0,"Obrigado por usar nossas solucoes!\n\tSee u soon!",15);
 }
