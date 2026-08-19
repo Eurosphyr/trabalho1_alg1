@@ -5,11 +5,8 @@
 #include <stdlib.h>
 
 /*
-    estrutura da matriz:
-    [
-    [cod,percentual,nota1,nota2,media],
-    ...
-    ]
+Feito por Miguel Angelo de Lima Godoi e
+Pedro Augusto de Oliveira Galdino Ribeiro
 */
 
 void gotoxy(int x, int y);
